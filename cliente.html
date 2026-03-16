@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Burger do João</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #1D9E75;
+    --green-dark: #0F6E56;
+    --green-light: #E1F5EE;
+    --green-text: #085041;
+    --bg: #F7F6F3;
+    --surface: #FFFFFF;
+    --border: rgba(0,0,0,0.08);
+    --text: #1A1A1A;
+    --text-2: #666;
+    --text-3: #999;
+    --radius: 10px;
+    --radius-lg: 14px;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); }
+
+  /* HERO */
+  .hero { background: var(--green); color: #fff; padding: 40px 20px 32px; text-align: center; position: relative; overflow: hidden; }
+  .hero::before { content:''; position:absolute; inset:0; background: radial-gradient(ellipse at 70% 0%, #25c490 0%, transparent 60%); pointer-events:none; }
+  .hero-emoji { font-size: 48px; margin-bottom: 12px; display: block; }
+  .hero-name { font-size: 26px; font-weight: 600; margin-bottom: 6px; }
+  .hero-tag { font-size: 14px; opacity: 0.85; margin-bottom: 16px; }
+  .hero-badges { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .hero-badge { font-size: 12px; font-weight: 500; padding: 4px 12px; border-radius: 99px; background: rgba(255,255,255,0.2); color: #fff; }
+
+  /* NAV */
+  .sticky-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; overflow-x: auto; }
+  .sticky-nav::-webkit-scrollbar { display: none; }
+  .nav-item { flex-shrink: 0; padding: 14px 18px; font-size: 13px; font-weight: 500; color: var(--text-2); border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  .nav-item.active { color: var(--green); border-bottom-color: var(--green); }
+
+  /* CONTENT */
+  .content { max-width: 600px; margin: 0 auto; padding: 20px 16px 80px; }
+  .tab-section { display: none; }
+  .tab-section.active { display: block; }
+
+  /* CARDAPIO */
+  .cat-title { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.07em; margin: 20px 0 10px; }
+  .cat-title:first-child { margin-top: 0; }
+  .item-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px; margin-bottom: 10px; display: flex; gap: 12px; align-items: center; cursor: pointer; transition: box-shadow 0.15s; }
+  .item-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+  .item-emoji { font-size: 32px; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--bg); border-radius: var(--radius); flex-shrink: 0; }
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-size: 15px; font-weight: 500; }
+  .item-desc { font-size: 12px; color: var(--text-2); margin-top: 3px; line-height: 1.4; }
+  .item-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+  .item-price { font-size: 15px; font-weight: 600; color: var(--green); }
+  .btn-add { width: 30px; height: 30px; border-radius: 50%; background: var(--green); color: #fff; border: none; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s; flex-shrink: 0; }
+  .btn-add:hover { background: var(--green-dark); }
+
+  /* INFO */
+  .info-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 12px; }
+  .info-row { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .info-row:last-child { border-bottom: none; }
+  .info-icon { font-size: 18px; width: 32px; text-align: center; flex-shrink: 0; margin-top: 1px; }
+  .info-label { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .info-value { font-size: 14px; color: var(--text); line-height: 1.5; }
+  .info-tag { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; background: var(--green-light); color: var(--green-text); font-weight: 500; margin-right: 4px; margin-top: 4px; }
+
+  /* CONTATO */
+  .btn-contact { width: 100%; padding: 14px; border: none; border-radius: var(--radius-lg); font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; transition: opacity 0.15s; }
+  .btn-contact:hover { opacity: 0.9; }
+  .btn-whats { background: #25D366; color: #fff; }
+  .btn-insta { background: #E1306C; color: #fff; }
+  .btn-maps { background: #4285F4; color: #fff; }
+
+  /* AGENDAMENTO */
+  .agendar-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 12px; }
+  .agendar-title { font-size: 15px; font-weight: 500; margin-bottom: 16px; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; }
+  .field input, .field select, .field textarea { width: 100%; padding: 10px 12px; font-size: 14px; border: 1px solid rgba(0,0,0,0.12); border-radius: var(--radius); background: var(--bg); color: var(--text); font-family: inherit; outline: none; transition: border 0.15s; }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--green); }
+  .btn-green { width: 100%; padding: 13px; background: var(--green); color: #fff; border: none; border-radius: var(--radius-lg); font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; margin-top: 4px; }
+  .btn-green:hover { background: var(--green-dark); }
+  .agendar-success { display: none; text-align: center; padding: 20px; }
+  .agendar-success-icon { font-size: 40px; margin-bottom: 10px; }
+  .agendar-success-msg { font-size: 15px; font-weight: 500; color: var(--green); }
+  .agendar-success-sub { font-size: 13px; color: var(--text-2); margin-top: 4px; }
+
+  /* CARRINHO */
+  .cart-bar { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--green); color: #fff; border-radius: 99px; padding: 14px 24px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 20px rgba(29,158,117,0.4); cursor: pointer; transition: all 0.2s; white-space: nowrap; z-index: 200; }
+  .cart-bar.hidden { transform: translateX(-50%) translateY(80px); opacity: 0; pointer-events: none; }
+  .cart-count { background: #fff; color: var(--green); border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
+  .cart-label { font-size: 14px; font-weight: 500; }
+  .cart-total { font-size: 14px; font-weight: 600; margin-left: auto; }
+
+  /* MODAL CARRINHO */
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 300; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-bg.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--surface); border-radius: var(--radius-lg) var(--radius-lg) 0 0; width: 100%; max-width: 600px; padding: 20px; max-height: 80vh; overflow-y: auto; transform: translateY(40px); transition: transform 0.25s; }
+  .modal-bg.open .modal { transform: translateY(0); }
+  .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+  .modal-close { font-size: 20px; cursor: pointer; color: var(--text-2); background: none; border: none; font-family: inherit; }
+  .cart-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .cart-item:last-child { border-bottom: none; }
+  .cart-item-name { flex: 1; font-size: 14px; font-weight: 500; }
+  .cart-item-price { font-size: 14px; color: var(--green); font-weight: 500; }
+  .qty-ctrl { display: flex; align-items: center; gap: 8px; }
+  .qty-btn { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); background: transparent; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text); }
+  .qty-num { font-size: 14px; font-weight: 500; min-width: 16px; text-align: center; }
+  .cart-total-row { display: flex; justify-content: space-between; padding: 14px 0 0; font-size: 15px; font-weight: 600; }
+  .btn-pedido { width: 100%; padding: 14px; background: #25D366; color: #fff; border: none; border-radius: var(--radius-lg); font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; margin-top: 14px; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <span class="hero-emoji">🍔</span>
+  <div class="hero-name">Burger do João</div>
+  <div class="hero-tag">Os melhores burgers artesanais de Santo André</div>
+  <div class="hero-badges">
+    <span class="hero-badge">Aberto agora</span>
+    <span class="hero-badge">Entrega disponível</span>
+    <span class="hero-badge">⭐ 4.8</span>
+  </div>
+</div>
+
+<div class="sticky-nav">
+  <div class="nav-item active" onclick="switchTab(this,'cardapio')">Cardápio</div>
+  <div class="nav-item" onclick="switchTab(this,'pedido')">Pedido WhatsApp</div>
+  <div class="nav-item" onclick="switchTab(this,'agendar')">Agendamento</div>
+  <div class="nav-item" onclick="switchTab(this,'info')">Informações</div>
+  <div class="nav-item" onclick="switchTab(this,'contato')">Contato</div>
+</div>
+
+<div class="content">
+
+  <!-- CARDÁPIO -->
+  <div class="tab-section active" id="tab-cardapio">
+    <div class="cat-title">Burgers</div>
+    <div class="item-card" onclick="addCart('Burger Clássico',28)">
+      <div class="item-emoji">🍔</div>
+      <div class="item-info">
+        <div class="item-name">Burger Clássico</div>
+        <div class="item-desc">Blend 180g, queijo cheddar, alface, tomate, molho especial</div>
+        <div class="item-bottom"><span class="item-price">R$28</span><button class="btn-add" onclick="event.stopPropagation();addCart('Burger Clássico',28)">+</button></div>
+      </div>
+    </div>
+    <div class="item-card" onclick="addCart('Burger Apimentado',34)">
+      <div class="item-emoji">🔥</div>
+      <div class="item-info">
+        <div class="item-name">Burger Apimentado</div>
+        <div class="item-desc">Blend 180g, jalapeño, cheddar derretido, bacon crocante</div>
+        <div class="item-bottom"><span class="item-price">R$34</span><button class="btn-add" onclick="event.stopPropagation();addCart('Burger Apimentado',34)">+</button></div>
+      </div>
+    </div>
+    <div class="item-card" onclick="addCart('Smash Duplo',42)">
+      <div class="item-emoji">🧀</div>
+      <div class="item-info">
+        <div class="item-name">Smash Duplo</div>
+        <div class="item-desc">2x blend 120g smashado, duplo cheddar americano</div>
+        <div class="item-bottom"><span class="item-price">R$42</span><button class="btn-add" onclick="event.stopPropagation();addCart('Smash Duplo',42)">+</button></div>
+      </div>
+    </div>
+    <div class="item-card" onclick="addCart('Veggie Burger',30)">
+      <div class="item-emoji">🥗</div>
+      <div class="item-info">
+        <div class="item-name">Veggie Burger</div>
+        <div class="item-desc">Hambúrguer de grão-de-bico, queijo, rúcula, tomate seco</div>
+        <div class="item-bottom"><span class="item-price">R$30</span><button class="btn-add" onclick="event.stopPropagation();addCart('Veggie Burger',30)">+</button></div>
+      </div>
+    </div>
+
+    <div class="cat-title">Acompanhamentos</div>
+    <div class="item-card" onclick="addCart('Batata Frita',14)">
+      <div class="item-emoji">🍟</div>
+      <div class="item-info">
+        <div class="item-name">Batata Frita</div>
+        <div class="item-desc">Porção crocante com sal e ervas</div>
+        <div class="item-bottom"><span class="item-price">R$14</span><button class="btn-add" onclick="event.stopPropagation();addCart('Batata Frita',14)">+</button></div>
+      </div>
+    </div>
+    <div class="item-card" onclick="addCart('Onion Rings',16)">
+      <div class="item-emoji">🧅</div>
+      <div class="item-info">
+        <div class="item-name">Onion Rings</div>
+        <div class="item-desc">Anéis de cebola empanados, molho ranch</div>
+        <div class="item-bottom"><span class="item-price">R$16</span><button class="btn-add" onclick="event.stopPropagation();addCart('Onion Rings',16)">+</button></div>
+      </div>
+    </div>
+
+    <div class="cat-title">Bebidas</div>
+    <div class="item-card" onclick="addCart('Refrigerante',6)">
+      <div class="item-emoji">🥤</div>
+      <div class="item-info">
+        <div class="item-name">Refrigerante</div>
+        <div class="item-desc">Lata 350ml — Coca, Guaraná, Sprite</div>
+        <div class="item-bottom"><span class="item-price">R$6</span><button class="btn-add" onclick="event.stopPropagation();addCart('Refrigerante',6)">+</button></div>
+      </div>
+    </div>
+    <div class="item-card" onclick="addCart('Milkshake',18)">
+      <div class="item-emoji">🥛</div>
+      <div class="item-info">
+        <div class="item-name">Milkshake</div>
+        <div class="item-desc">Chocolate, morango ou baunilha — 400ml</div>
+        <div class="item-bottom"><span class="item-price">R$18</span><button class="btn-add" onclick="event.stopPropagation();addCart('Milkshake',18)">+</button></div>
+      </div>
+    </div>
+    <div class="item-card" onclick="addCart('Cerveja Artesanal',14)">
+      <div class="item-emoji">🍺</div>
+      <div class="item-info">
+        <div class="item-name">Cerveja Artesanal</div>
+        <div class="item-desc">Long neck 355ml — IPA, Lager ou Weiss</div>
+        <div class="item-bottom"><span class="item-price">R$14</span><button class="btn-add" onclick="event.stopPropagation();addCart('Cerveja Artesanal',14)">+</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PEDIDO WHATSAPP -->
+  <div class="tab-section" id="tab-pedido">
+    <div class="agendar-card">
+      <div class="agendar-title">Fazer pedido pelo WhatsApp</div>
+      <div id="pedido-form">
+        <div class="field"><label>Seu nome</label><input type="text" id="pedido-nome" placeholder="João Silva" /></div>
+        <div class="field"><label>Tipo de entrega</label>
+          <select id="pedido-tipo">
+            <option>Entrega em casa</option>
+            <option>Retirada no local</option>
+          </select>
+        </div>
+        <div class="field" id="field-endereco"><label>Endereço de entrega</label><input type="text" id="pedido-endereco" placeholder="Rua, número, bairro" /></div>
+        <div class="field"><label>Observações</label><textarea id="pedido-obs" rows="2" placeholder="Sem cebola, ponto da carne..."></textarea></div>
+        <button class="btn-green" onclick="enviarPedidoWhats()">Enviar pedido pelo WhatsApp</button>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;font-size:13px;color:var(--text-2);line-height:1.6;">
+      Horário de entrega: <strong style="color:var(--text)">Ter–Dom, 11h às 22h</strong><br>
+      Taxa de entrega: <strong style="color:var(--text)">R$5 até 3km · R$8 até 6km</strong><br>
+      Tempo médio: <strong style="color:var(--text)">40–60 minutos</strong>
+    </div>
+  </div>
+
+  <!-- AGENDAMENTO -->
+  <div class="tab-section" id="tab-agendar">
+    <div class="agendar-card">
+      <div class="agendar-title">Reservar mesa</div>
+      <div id="agendar-form">
+        <div class="field"><label>Nome</label><input type="text" id="ag-nome" placeholder="Seu nome" /></div>
+        <div class="field"><label>Telefone / WhatsApp</label><input type="tel" id="ag-tel" placeholder="(11) 99999-0000" /></div>
+        <div class="field"><label>Data</label><input type="date" id="ag-data" /></div>
+        <div class="field"><label>Horário</label>
+          <select id="ag-hora">
+            <option>11:00</option><option>12:00</option><option>13:00</option>
+            <option>14:00</option><option>18:00</option><option>19:00</option>
+            <option>20:00</option><option>21:00</option>
+          </select>
+        </div>
+        <div class="field"><label>Número de pessoas</label>
+          <select id="ag-pessoas">
+            <option>1 pessoa</option><option>2 pessoas</option><option>3 pessoas</option>
+            <option>4 pessoas</option><option>5 pessoas</option><option>6+ pessoas</option>
+          </select>
+        </div>
+        <div class="field"><label>Observações</label><textarea id="ag-obs" rows="2" placeholder="Aniversário, cadeirinha para bebê..."></textarea></div>
+        <button class="btn-green" onclick="confirmarAgendamento()">Confirmar reserva</button>
+      </div>
+      <div class="agendar-success" id="agendar-ok">
+        <div class="agendar-success-icon">✅</div>
+        <div class="agendar-success-msg">Reserva confirmada!</div>
+        <div class="agendar-success-sub">Você receberá uma confirmação pelo WhatsApp em breve.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INFORMAÇÕES -->
+  <div class="tab-section" id="tab-info">
+    <div class="info-card">
+      <div class="info-row">
+        <div class="info-icon">📍</div>
+        <div><div class="info-label">Endereço</div><div class="info-value">Rua das Flores, 123<br>Vila Guiomar, Santo André — SP</div></div>
+      </div>
+      <div class="info-row">
+        <div class="info-icon">🕐</div>
+        <div><div class="info-label">Horário de funcionamento</div><div class="info-value">Terça a Domingo<br>Almoço: 11h às 15h · Jantar: 18h às 23h</div></div>
+      </div>
+      <div class="info-row">
+        <div class="info-icon">🚗</div>
+        <div><div class="info-label">Estacionamento</div><div class="info-value">Estacionamento próprio gratuito</div></div>
+      </div>
+      <div class="info-row">
+        <div class="info-icon">💳</div>
+        <div>
+          <div class="info-label">Formas de pagamento</div>
+          <div class="info-value">
+            <span class="info-tag">Pix</span>
+            <span class="info-tag">Débito</span>
+            <span class="info-tag">Crédito</span>
+            <span class="info-tag">Dinheiro</span>
+            <span class="info-tag">Vale-refeição</span>
+          </div>
+        </div>
+      </div>
+      <div class="info-row">
+        <div class="info-icon">🛵</div>
+        <div>
+          <div class="info-label">Delivery</div>
+          <div class="info-value">
+            <span class="info-tag">iFood</span>
+            <span class="info-tag">Rappi</span>
+            <span class="info-tag">WhatsApp</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTATO -->
+  <div class="tab-section" id="tab-contato">
+    <button class="btn-contact btn-whats" onclick="window.open('https://wa.me/5511999990000?text=Olá! Vi o site e quero saber mais.')">
+      <span style="font-size:20px;">💬</span> WhatsApp — (11) 99999-0000
+    </button>
+    <button class="btn-contact btn-insta" onclick="window.open('https://instagram.com/burgerdojoao')">
+      <span style="font-size:20px;">📸</span> Instagram — @burgerdojoao
+    </button>
+    <button class="btn-contact btn-maps" onclick="window.open('https://maps.google.com/?q=Rua+das+Flores+123+Santo+Andre')">
+      <span style="font-size:20px;">🗺️</span> Como chegar
+    </button>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;margin-top:10px;">
+      <div style="font-size:11px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:8px;">E-mail</div>
+      <div style="font-size:14px;color:var(--text);">contato@burgerdojoao.com.br</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CARRINHO -->
+<div class="cart-bar hidden" id="cart-bar" onclick="openCart()">
+  <div class="cart-count" id="cart-count">0</div>
+  <div class="cart-label">Ver carrinho</div>
+  <div class="cart-total" id="cart-total-bar">R$0</div>
+</div>
+
+<!-- MODAL CARRINHO -->
+<div class="modal-bg" id="modal-bg" onclick="closeCartOutside(event)">
+  <div class="modal" id="modal">
+    <div class="modal-title">Carrinho <button class="modal-close" onclick="closeCart()">×</button></div>
+    <div id="cart-items"></div>
+    <div class="cart-total-row"><span>Total</span><span id="cart-total-modal">R$0</span></div>
+    <button class="btn-pedido" onclick="pedidoWhatsCartModal()">💬 Pedir pelo WhatsApp</button>
+  </div>
+</div>
+
+<script>
+let cart = {};
+
+function switchTab(btn, id) {
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+function addCart(nome, preco) {
+  if (!cart[nome]) cart[nome] = { preco, qty: 0 };
+  cart[nome].qty++;
+  updateCartBar();
+}
+
+function updateCartBar() {
+  const total = Object.values(cart).reduce((s,i)=>s+i.preco*i.qty,0);
+  const count = Object.values(cart).reduce((s,i)=>s+i.qty,0);
+  document.getElementById('cart-count').textContent = count;
+  document.getElementById('cart-total-bar').textContent = 'R$'+total;
+  document.getElementById('cart-bar').classList.toggle('hidden', count===0);
+}
+
+function openCart() {
+  renderCartItems();
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function closeCart() { document.getElementById('modal-bg').classList.remove('open'); }
+function closeCartOutside(e) { if(e.target===document.getElementById('modal-bg')) closeCart(); }
+
+function renderCartItems() {
+  const el = document.getElementById('cart-items');
+  const total = Object.values(cart).reduce((s,i)=>s+i.preco*i.qty,0);
+  if (Object.keys(cart).length===0) { el.innerHTML='<div style="text-align:center;padding:20px;color:#999;font-size:14px;">Carrinho vazio</div>'; return; }
+  el.innerHTML = Object.entries(cart).map(([nome,{preco,qty}])=>`
+    <div class="cart-item">
+      <div class="cart-item-name">${nome}</div>
+      <div class="qty-ctrl">
+        <button class="qty-btn" onclick="changeQty('${nome}',-1)">−</button>
+        <div class="qty-num">${qty}</div>
+        <button class="qty-btn" onclick="changeQty('${nome}',1)">+</button>
+      </div>
+      <div class="cart-item-price">R$${preco*qty}</div>
+    </div>
+  `).join('');
+  document.getElementById('cart-total-modal').textContent = 'R$'+total;
+}
+
+function changeQty(nome, delta) {
+  cart[nome].qty += delta;
+  if (cart[nome].qty <= 0) delete cart[nome];
+  updateCartBar();
+  renderCartItems();
+}
+
+function pedidoWhatsCartModal() {
+  const itens = Object.entries(cart).map(([nome,{preco,qty}])=>`${qty}x ${nome} (R$${preco*qty})`).join('%0A');
+  const total = Object.values(cart).reduce((s,i)=>s+i.preco*i.qty,0);
+  const msg = `Olá! Quero fazer um pedido:%0A%0A${itens}%0A%0ATotal: R$${total}`;
+  window.open('https://wa.me/5511999990000?text='+msg);
+}
+
+function enviarPedidoWhats() {
+  const nome = document.getElementById('pedido-nome').value.trim();
+  const tipo = document.getElementById('pedido-tipo').value;
+  const endereco = document.getElementById('pedido-endereco').value.trim();
+  const obs = document.getElementById('pedido-obs').value.trim();
+  if (!nome) { alert('Digite seu nome!'); return; }
+  let msg = `Olá! Quero fazer um pedido.%0A%0ANome: ${nome}%0ATipo: ${tipo}`;
+  if (tipo==='Entrega em casa' && endereco) msg += `%0AEndereço: ${endereco}`;
+  if (obs) msg += `%0AObservações: ${obs}`;
+  if (Object.keys(cart).length > 0) {
+    const itens = Object.entries(cart).map(([n,{preco,qty}])=>`${qty}x ${n}`).join(', ');
+    msg += `%0APedido: ${itens}`;
+  }
+  window.open('https://wa.me/5511999990000?text='+msg);
+}
+
+function confirmarAgendamento() {
+  const nome = document.getElementById('ag-nome').value.trim();
+  const tel = document.getElementById('ag-tel').value.trim();
+  const data = document.getElementById('ag-data').value;
+  const hora = document.getElementById('ag-hora').value;
+  const pessoas = document.getElementById('ag-pessoas').value;
+  if (!nome || !tel || !data) { alert('Preencha nome, telefone e data!'); return; }
+  document.getElementById('agendar-form').style.display = 'none';
+  document.getElementById('agendar-ok').style.display = 'block';
+  const msg = `Olá! Quero reservar uma mesa.%0ANome: ${nome}%0ATelefone: ${tel}%0AData: ${data}%0AHorário: ${hora}%0APessoas: ${pessoas}`;
+  setTimeout(()=>window.open('https://wa.me/5511999990000?text='+msg), 1000);
+}
+
+document.getElementById('pedido-tipo').addEventListener('change', function() {
+  document.getElementById('field-endereco').style.display = this.value==='Retirada no local' ? 'none' : 'block';
+});
+
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('ag-data').setAttribute('min', today);
+</script>
+</body>
+</html>
