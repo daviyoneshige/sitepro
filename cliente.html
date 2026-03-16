@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carregando...</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root { --green: #1D9E75; --green-dark: #0F6E56; --green-light: #E1F5EE; --green-text: #085041; --bg: #F7F6F3; --surface: #FFFFFF; --border: rgba(0,0,0,0.08); --border-md: rgba(0,0,0,0.14); --text: #1A1A1A; --text-2: #666; --text-3: #999; --radius: 10px; --radius-lg: 14px; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); }
+  #loading { min-height: 100vh; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 12px; }
+  .loading-name { font-size: 20px; font-weight: 600; color: var(--text-2); }
+  #not-found { min-height: 100vh; display: none; align-items: center; justify-content: center; flex-direction: column; gap: 12px; text-align: center; padding: 20px; }
+  .hero { background: var(--green); color: #fff; padding: 36px 20px 28px; text-align: center; position: relative; overflow: hidden; }
+  .hero-emoji { font-size: 44px; margin-bottom: 10px; display: block; }
+  .hero-name { font-size: 24px; font-weight: 600; margin-bottom: 6px; }
+  .hero-tag { font-size: 13px; opacity: 0.85; margin-bottom: 14px; }
+  .hero-badges { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .hero-badge { font-size: 12px; font-weight: 500; padding: 4px 12px; border-radius: 99px; background: rgba(255,255,255,0.2); }
+  .sticky-nav { position: sticky; top: 0; z-index: 100; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; overflow-x: auto; }
+  .sticky-nav::-webkit-scrollbar { display: none; }
+  .nav-item { flex-shrink: 0; padding: 13px 16px; font-size: 13px; font-weight: 500; color: var(--text-2); border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+  .nav-item.active { color: var(--green); border-bottom-color: var(--green); }
+  .content { max-width: 600px; margin: 0 auto; padding: 20px 16px 80px; }
+  .tab-section { display: none; }
+  .tab-section.active { display: block; }
+  .cat-title { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.07em; margin: 20px 0 10px; }
+  .cat-title:first-child { margin-top: 0; }
+  .item-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 14px; margin-bottom: 10px; display: flex; gap: 12px; align-items: center; }
+  .item-emoji { font-size: 28px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: var(--bg); border-radius: var(--radius); flex-shrink: 0; }
+  .item-info { flex: 1; min-width: 0; }
+  .item-name { font-size: 14px; font-weight: 500; }
+  .item-desc { font-size: 12px; color: var(--text-2); margin-top: 2px; line-height: 1.4; }
+  .item-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; }
+  .item-price { font-size: 15px; font-weight: 600; color: var(--green); }
+  .btn-add { width: 30px; height: 30px; border-radius: 50%; background: var(--green); color: #fff; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; line-height: 1; }
+  .info-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 12px; }
+  .info-row { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .info-row:last-child { border-bottom: none; }
+  .info-icon { font-size: 18px; width: 28px; text-align: center; flex-shrink: 0; }
+  .info-label { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+  .info-value { font-size: 14px; line-height: 1.5; }
+  .btn-contact { width: 100%; padding: 14px; border: none; border-radius: var(--radius-lg); font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 10px; }
+  .btn-whats { background: #25D366; color: #fff; }
+  .btn-insta { background: #E1306C; color: #fff; }
+  .btn-maps { background: #4285F4; color: #fff; }
+  .agendar-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 12px; }
+  .agendar-title { font-size: 15px; font-weight: 500; margin-bottom: 16px; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-2); margin-bottom: 5px; }
+  .field input, .field select, .field textarea { width: 100%; padding: 10px 12px; font-size: 14px; border: 1px solid var(--border-md); border-radius: var(--radius); background: var(--bg); color: var(--text); font-family: inherit; outline: none; transition: border 0.15s; }
+  .field input:focus, .field select:focus { border-color: var(--green); }
+  .btn-green { width: 100%; padding: 13px; background: var(--green); color: #fff; border: none; border-radius: var(--radius-lg); font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; margin-top: 4px; }
+  .btn-green:hover { background: var(--green-dark); }
+  .agendar-success { display: none; text-align: center; padding: 20px; }
+  .agendar-success-icon { font-size: 36px; margin-bottom: 8px; }
+  .agendar-success-msg { font-size: 15px; font-weight: 500; color: var(--green); }
+  .cart-bar { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--green); color: #fff; border-radius: 99px; padding: 13px 22px; display: flex; align-items: center; gap: 10px; box-shadow: 0 4px 20px rgba(29,158,117,0.4); cursor: pointer; white-space: nowrap; z-index: 200; transition: all 0.2s; }
+  .cart-bar.hidden { transform: translateX(-50%) translateY(80px); opacity: 0; pointer-events: none; }
+  .cart-count { background: #fff; color: var(--green); border-radius: 50%; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
+  .cart-label { font-size: 14px; font-weight: 500; }
+  .cart-total-bar { font-size: 14px; font-weight: 600; }
+  .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 300; display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+  .modal-bg.open { opacity: 1; pointer-events: all; }
+  .modal { background: var(--surface); border-radius: var(--radius-lg) var(--radius-lg) 0 0; width: 100%; max-width: 600px; padding: 20px; max-height: 80vh; overflow-y: auto; transform: translateY(40px); transition: transform 0.25s; }
+  .modal-bg.open .modal { transform: translateY(0); }
+  .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; }
+  .modal-close { font-size: 22px; cursor: pointer; color: var(--text-2); background: none; border: none; font-family: inherit; line-height: 1; }
+  .cart-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .cart-item:last-child { border-bottom: none; }
+  .cart-item-name { flex: 1; font-size: 14px; font-weight: 500; }
+  .cart-item-price { font-size: 14px; color: var(--green); font-weight: 500; min-width: 60px; text-align: right; }
+  .qty-ctrl { display: flex; align-items: center; gap: 8px; }
+  .qty-btn { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border-md); background: transparent; font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .qty-num { font-size: 14px; font-weight: 500; min-width: 16px; text-align: center; }
+  .cart-total-row { display: flex; justify-content: space-between; padding: 14px 0 0; font-size: 15px; font-weight: 600; }
+  .btn-pedido { width: 100%; padding: 14px; background: #25D366; color: #fff; border: none; border-radius: var(--radius-lg); font-size: 15px; font-weight: 500; cursor: pointer; font-family: inherit; margin-top: 14px; }
+  .empty-menu { text-align: center; padding: 40px 20px; color: var(--text-3); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="loading-name">Carregando...</div>
+</div>
+
+<div id="not-found">
+  <div style="font-size:48px;">🍽️</div>
+  <div style="font-size:18px;font-weight:600;">Restaurante não encontrado</div>
+  <div style="font-size:14px;color:var(--text-2);">Verifique o link e tente novamente.</div>
+</div>
+
+<div id="site-content" style="display:none;">
+  <div class="hero" id="site-hero">
+    <span class="hero-emoji" id="hero-emoji">🍽️</span>
+    <div class="hero-name" id="hero-name">...</div>
+    <div class="hero-tag" id="hero-tag">...</div>
+    <div class="hero-badges" id="hero-badges"></div>
+  </div>
+
+  <div class="sticky-nav">
+    <div class="nav-item active" onclick="switchTab(this,'cardapio')">Cardápio</div>
+    <div class="nav-item" onclick="switchTab(this,'pedido')">Pedido WhatsApp</div>
+    <div class="nav-item" onclick="switchTab(this,'agendar')">Reserva</div>
+    <div class="nav-item" onclick="switchTab(this,'info')">Informações</div>
+    <div class="nav-item" onclick="switchTab(this,'contato')">Contato</div>
+  </div>
+
+  <div class="content">
+    <!-- CARDÁPIO -->
+    <div class="tab-section active" id="tab-cardapio">
+      <div id="menu-content"><div class="empty-menu">Cardápio em breve...</div></div>
+    </div>
+
+    <!-- PEDIDO WHATS -->
+    <div class="tab-section" id="tab-pedido">
+      <div class="agendar-card">
+        <div class="agendar-title">Fazer pedido pelo WhatsApp</div>
+        <div class="field"><label>Seu nome</label><input type="text" id="p-nome" placeholder="João Silva" /></div>
+        <div class="field"><label>Tipo</label>
+          <select id="p-tipo" onchange="toggleEndereco()">
+            <option>Entrega em casa</option>
+            <option>Retirada no local</option>
+          </select>
+        </div>
+        <div class="field" id="field-end"><label>Endereço</label><input type="text" id="p-end" placeholder="Rua, número, bairro" /></div>
+        <div class="field"><label>Observações</label><textarea id="p-obs" style="height:70px;resize:none;" placeholder="Sem cebola..."></textarea></div>
+        <button class="btn-green" onclick="enviarPedidoWhats()">Enviar pedido pelo WhatsApp</button>
+      </div>
+    </div>
+
+    <!-- RESERVA -->
+    <div class="tab-section" id="tab-agendar">
+      <div class="agendar-card">
+        <div class="agendar-title">Reservar mesa</div>
+        <div id="ag-form">
+          <div class="field"><label>Nome</label><input type="text" id="ag-nome" placeholder="Seu nome" /></div>
+          <div class="field"><label>Telefone / WhatsApp</label><input type="tel" id="ag-tel" placeholder="(11) 99999-0000" /></div>
+          <div class="field"><label>Data</label><input type="date" id="ag-data" /></div>
+          <div class="field"><label>Horário</label>
+            <select id="ag-hora"><option>11:00</option><option>12:00</option><option>13:00</option><option>14:00</option><option>18:00</option><option>19:00</option><option>20:00</option><option>21:00</option></select>
+          </div>
+          <div class="field"><label>Pessoas</label>
+            <select id="ag-pess"><option>1 pessoa</option><option>2 pessoas</option><option>3 pessoas</option><option>4 pessoas</option><option>5 pessoas</option><option>6+ pessoas</option></select>
+          </div>
+          <div class="field"><label>Observações</label><textarea id="ag-obs" style="height:60px;resize:none;" placeholder="Aniversário, cadeirinha..."></textarea></div>
+          <button class="btn-green" onclick="confirmarReserva()">Confirmar reserva</button>
+        </div>
+        <div class="agendar-success" id="ag-ok">
+          <div class="agendar-success-icon">✅</div>
+          <div class="agendar-success-msg">Reserva confirmada!</div>
+          <div style="font-size:13px;color:var(--text-2);margin-top:4px;">Você receberá confirmação pelo WhatsApp.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INFORMAÇÕES -->
+    <div class="tab-section" id="tab-info">
+      <div class="info-card" id="info-card"></div>
+    </div>
+
+    <!-- CONTATO -->
+    <div class="tab-section" id="tab-contato">
+      <div id="contato-btns"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CARRINHO -->
+<div class="cart-bar hidden" id="cart-bar" onclick="openCart()">
+  <div class="cart-count" id="cart-count">0</div>
+  <div class="cart-label">Ver carrinho</div>
+  <div class="cart-total-bar" id="cart-total-bar">R$0</div>
+</div>
+
+<div class="modal-bg" id="modal-bg" onclick="closeCartOutside(event)">
+  <div class="modal">
+    <div class="modal-title">Carrinho <button class="modal-close" onclick="closeCart()">×</button></div>
+    <div id="cart-items"></div>
+    <div class="cart-total-row"><span>Total</span><span id="cart-total-modal">R$0</span></div>
+    <button class="btn-pedido" onclick="pedirCarrinhoWhats()">💬 Pedir pelo WhatsApp</button>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBdey2OxOYgcaaLhjHgJsYKkeBYIzJhBcE",
+  authDomain: "sitepro-davi.firebaseapp.com",
+  projectId: "sitepro-davi",
+  storageBucket: "sitepro-davi.firebasestorage.app",
+  messagingSenderId: "454602466209",
+  appId: "1:454602466209:web:964382863c69ef000a21e0"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+
+// pega o slug da URL: cliente.html?r=burger-do-joao
+const slug = new URLSearchParams(window.location.search).get('r');
+let restaurante = null;
+let cart = {};
+
+async function init() {
+  if (!slug) { showNotFound(); return; }
+  const snap = await getDocs(query(collection(db,'restaurantes'), where('slug','==',slug)));
+  if (snap.empty) { showNotFound(); return; }
+  restaurante = snap.docs[0].data();
+  document.title = restaurante.nome;
+  renderSite();
+}
+
+function showNotFound() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('not-found').style.display = 'flex';
+}
+
+function renderSite() {
+  document.getElementById('loading').style.display = 'none';
+  document.getElementById('site-content').style.display = 'block';
+  const r = restaurante;
+
+  // Hero
+  const emojis = {'lanchonete':'🍔','pizzaria':'🍕','restaurante':'🍽️','bar':'🍺','churrascaria':'🥩','sushi':'🍣','tapioca':'🥞','doceria':'🍰','sorveteria':'🍦'};
+  const tipoKey = (r.tipo||'').toLowerCase();
+  const emoji = Object.keys(emojis).find(k=>tipoKey.includes(k));
+  document.getElementById('hero-emoji').textContent = emojis[emoji||''] || '🍽️';
+  document.getElementById('hero-name').textContent = r.nome;
+  document.getElementById('hero-tag').textContent = r.desc || `${r.tipo||''} em ${r.cidade||''}`;
+  document.getElementById('hero-badges').innerHTML = [
+    r.horario ? `<span class="hero-badge">🕐 ${r.horario}</span>` : '',
+    r.whats ? `<span class="hero-badge">Delivery disponível</span>` : '',
+    `<span class="hero-badge">⭐ ${r.cidade||''}</span>`
+  ].filter(Boolean).join('');
+
+  // Cardápio (placeholder enquanto não tem CRUD de cardápio)
+  document.getElementById('menu-content').innerHTML = `
+    <div style="text-align:center;padding:32px 20px;background:var(--surface);border-radius:var(--radius-lg);border:1px solid var(--border);">
+      <div style="font-size:36px;margin-bottom:12px;">🍽️</div>
+      <div style="font-size:15px;font-weight:500;margin-bottom:6px;">Cardápio em breve</div>
+      <div style="font-size:13px;color:var(--text-2);">O cardápio completo estará disponível em breve.<br>Entre em contato pelo WhatsApp para pedir!</div>
+      ${r.whats?`<button onclick="window.open('https://wa.me/55${r.whats}')" style="margin-top:16px;padding:10px 20px;background:var(--green);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:500;cursor:pointer;font-family:inherit;">Ver cardápio pelo WhatsApp</button>`:''}
+    </div>`;
+
+  // Informações
+  const infoRows = [
+    r.endereco ? `<div class="info-row"><div class="info-icon">📍</div><div><div class="info-label">Endereço</div><div class="info-value">${r.endereco} — ${r.cidade}</div></div></div>` : '',
+    r.horario ? `<div class="info-row"><div class="info-icon">🕐</div><div><div class="info-label">Horário</div><div class="info-value">${r.horario}</div></div></div>` : '',
+    `<div class="info-row"><div class="info-icon">💳</div><div><div class="info-label">Pagamento</div><div class="info-value">Pix · Débito · Crédito · Dinheiro</div></div></div>`,
+  ].filter(Boolean).join('');
+  document.getElementById('info-card').innerHTML = infoRows || '<div style="padding:20px;color:var(--text-3);font-size:14px;">Informações em breve.</div>';
+
+  // Contato
+  document.getElementById('contato-btns').innerHTML = [
+    r.whats ? `<button class="btn-contact btn-whats" onclick="window.open('https://wa.me/55${r.whats}?text=Olá! Vi o site e quero saber mais.')"><span style="font-size:18px;">💬</span> WhatsApp</button>` : '',
+    r.insta ? `<button class="btn-contact btn-insta" onclick="window.open('https://instagram.com/${r.insta}')"><span style="font-size:18px;">📸</span> @${r.insta}</button>` : '',
+    r.endereco ? `<button class="btn-contact btn-maps" onclick="window.open('https://maps.google.com/?q=${encodeURIComponent(r.endereco+' '+r.cidade)}')"><span style="font-size:18px;">🗺️</span> Como chegar</button>` : '',
+  ].filter(Boolean).join('') || '<div style="text-align:center;padding:20px;color:var(--text-3);font-size:14px;">Nenhum contato cadastrado.</div>';
+
+  // Data mínima agendamento
+  document.getElementById('ag-data').setAttribute('min', new Date().toISOString().split('T')[0]);
+}
+
+// TABS
+window.switchTab = (btn, id) => {
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-section').forEach(s=>s.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+};
+
+// CARRINHO
+window.addCart = (nome, preco) => {
+  if(!cart[nome]) cart[nome]={preco,qty:0};
+  cart[nome].qty++;
+  updateCartBar();
+};
+function updateCartBar() {
+  const total=Object.values(cart).reduce((s,i)=>s+i.preco*i.qty,0);
+  const count=Object.values(cart).reduce((s,i)=>s+i.qty,0);
+  document.getElementById('cart-count').textContent=count;
+  document.getElementById('cart-total-bar').textContent='R$'+total;
+  document.getElementById('cart-bar').classList.toggle('hidden',count===0);
+}
+window.openCart = () => { renderCartItems(); document.getElementById('modal-bg').classList.add('open'); };
+window.closeCart = () => document.getElementById('modal-bg').classList.remove('open');
+window.closeCartOutside = (e) => { if(e.target===document.getElementById('modal-bg')) closeCart(); };
+function renderCartItems() {
+  const el=document.getElementById('cart-items');
+  const total=Object.values(cart).reduce((s,i)=>s+i.preco*i.qty,0);
+  if(!Object.keys(cart).length){el.innerHTML='<div style="text-align:center;padding:20px;color:var(--text-3);font-size:14px;">Carrinho vazio</div>';return;}
+  el.innerHTML=Object.entries(cart).map(([n,{preco,qty}])=>`
+    <div class="cart-item">
+      <div class="cart-item-name">${n}</div>
+      <div class="qty-ctrl"><button class="qty-btn" onclick="changeQty('${n}',-1)">−</button><div class="qty-num">${qty}</div><button class="qty-btn" onclick="changeQty('${n}',1)">+</button></div>
+      <div class="cart-item-price">R$${preco*qty}</div>
+    </div>`).join('');
+  document.getElementById('cart-total-modal').textContent='R$'+total;
+}
+window.changeQty = (n,d) => { cart[n].qty+=d; if(cart[n].qty<=0) delete cart[n]; updateCartBar(); renderCartItems(); };
+window.pedirCarrinhoWhats = () => {
+  if(!restaurante?.whats) return;
+  const itens=Object.entries(cart).map(([n,{preco,qty}])=>`${qty}x ${n} (R$${preco*qty})`).join('%0A');
+  const total=Object.values(cart).reduce((s,i)=>s+i.preco*i.qty,0);
+  window.open(`https://wa.me/55${restaurante.whats}?text=Olá! Quero fazer um pedido:%0A%0A${itens}%0A%0ATotal: R$${total}`);
+};
+
+// PEDIDO WHATS
+window.toggleEndereco = () => {
+  const tipo=document.getElementById('p-tipo').value;
+  document.getElementById('field-end').style.display=tipo==='Retirada no local'?'none':'block';
+};
+window.enviarPedidoWhats = () => {
+  if(!restaurante?.whats){alert('Restaurante sem WhatsApp cadastrado.');return;}
+  const nome=document.getElementById('p-nome').value.trim();
+  if(!nome){alert('Digite seu nome!');return;}
+  const tipo=document.getElementById('p-tipo').value;
+  const end=document.getElementById('p-end').value.trim();
+  const obs=document.getElementById('p-obs').value.trim();
+  let msg=`Olá! Quero fazer um pedido.%0ANome: ${nome}%0ATipo: ${tipo}`;
+  if(tipo==='Entrega em casa'&&end) msg+=`%0AEndereço: ${end}`;
+  if(obs) msg+=`%0AObs: ${obs}`;
+  if(Object.keys(cart).length) msg+=`%0APedido: ${Object.entries(cart).map(([n,{qty}])=>`${qty}x ${n}`).join(', ')}`;
+  window.open(`https://wa.me/55${restaurante.whats}?text=${msg}`);
+};
+
+// RESERVA
+window.confirmarReserva = () => {
+  if(!restaurante?.whats){alert('Restaurante sem WhatsApp cadastrado.');return;}
+  const nome=document.getElementById('ag-nome').value.trim();
+  const tel=document.getElementById('ag-tel').value.trim();
+  const data=document.getElementById('ag-data').value;
+  if(!nome||!tel||!data){alert('Preencha nome, telefone e data!');return;}
+  const hora=document.getElementById('ag-hora').value;
+  const pess=document.getElementById('ag-pess').value;
+  const obs=document.getElementById('ag-obs').value.trim();
+  let msg=`Olá! Quero reservar uma mesa.%0ANome: ${nome}%0ATelefone: ${tel}%0AData: ${data}%0AHorário: ${hora}%0APessoas: ${pess}`;
+  if(obs) msg+=`%0AObs: ${obs}`;
+  document.getElementById('ag-form').style.display='none';
+  document.getElementById('ag-ok').style.display='block';
+  setTimeout(()=>window.open(`https://wa.me/55${restaurante.whats}?text=${msg}`),800);
+};
+
+init();
+</script>
+</body>
+</html>

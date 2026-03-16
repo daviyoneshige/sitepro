@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SitePro</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #1D9E75; --green-dark: #0F6E56; --green-light: #E1F5EE; --green-text: #085041;
+    --amber-light: #FAEEDA; --amber-text: #854F0B;
+    --red: #E24B4A; --red-light: #FCEBEB; --red-text: #A32D2D;
+    --bg: #F7F6F3; --surface: #FFFFFF; --border: rgba(0,0,0,0.08); --border-md: rgba(0,0,0,0.14);
+    --text: #1A1A1A; --text-2: #666; --text-3: #999;
+    --radius: 10px; --radius-lg: 14px;
+  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  #auth-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .auth-card { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 36px; width: 100%; max-width: 380px; }
+  .auth-logo { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+  .auth-logo span { color: var(--green); }
+  .auth-sub { font-size: 13px; color: var(--text-2); margin-bottom: 24px; }
+  .auth-tabs { display: flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; }
+  .auth-tab { flex: 1; padding: 8px 4px; font-size: 12px; font-weight: 500; border: none; background: transparent; cursor: pointer; color: var(--text-2); font-family: inherit; transition: all 0.15s; }
+  .auth-tab.active { background: var(--green); color: #fff; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-2); margin-bottom: 5px; }
+  .field input, .field select, .field textarea { width: 100%; padding: 10px 12px; font-size: 14px; border: 1px solid var(--border-md); border-radius: var(--radius); background: var(--bg); color: var(--text); font-family: inherit; outline: none; transition: border 0.15s; }
+  .field input:focus, .field select:focus { border-color: var(--green); }
+  .field textarea { resize: none; height: 70px; }
+  .btn-primary { width: 100%; padding: 11px; background: var(--green); color: #fff; border: none; border-radius: var(--radius); font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; margin-bottom: 10px; }
+  .btn-primary:hover { background: var(--green-dark); }
+  .btn-google { width: 100%; padding: 10px; background: var(--surface); color: var(--text); border: 1px solid var(--border-md); border-radius: var(--radius); font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; }
+  .btn-google:hover { background: var(--bg); }
+  .auth-divider { display: flex; align-items: center; gap: 10px; margin: 12px 0; color: var(--text-3); font-size: 12px; }
+  .auth-divider::before, .auth-divider::after { content:''; flex:1; height:1px; background: var(--border-md); }
+  .auth-error { font-size: 12px; color: var(--red-text); background: var(--red-light); padding: 8px 12px; border-radius: var(--radius); margin-bottom: 12px; display: none; }
+  .auth-success { font-size: 12px; color: var(--green-text); background: var(--green-light); padding: 8px 12px; border-radius: var(--radius); margin-bottom: 12px; display: none; }
+  #setup-screen { min-height: 100vh; display: none; align-items: center; justify-content: center; padding: 20px; }
+  .setup-card { background: var(--surface); border-radius: var(--radius-lg); border: 1px solid var(--border); padding: 36px; width: 100%; max-width: 500px; }
+  .setup-title { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+  .setup-sub { font-size: 13px; color: var(--text-2); margin-bottom: 24px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media(max-width:500px){.form-grid{grid-template-columns:1fr;}}
+  #app { display: none; min-height: 100vh; flex-direction: column; }
+  .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 0 20px; height: 52px; display: flex; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 100; }
+  .topbar-logo { font-size: 16px; font-weight: 600; }
+  .topbar-logo span { color: var(--green); }
+  .topbar-role { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 99px; }
+  .role-admin { background: var(--green-light); color: var(--green-text); }
+  .role-empresa { background: var(--amber-light); color: var(--amber-text); }
+  .topbar-spacer { flex: 1; }
+  .topbar-user { font-size: 13px; color: var(--text-2); max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .btn-logout { font-size: 12px; padding: 6px 12px; border: 1px solid var(--border-md); border-radius: var(--radius); background: transparent; cursor: pointer; color: var(--text-2); font-family: inherit; flex-shrink: 0; }
+  .nav-tabs { background: var(--surface); border-bottom: 1px solid var(--border); display: flex; padding: 0 20px; overflow-x: auto; }
+  .nav-tab { padding: 14px 16px; font-size: 13px; font-weight: 500; color: var(--text-2); border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+  .nav-tab.active { color: var(--green); border-bottom-color: var(--green); }
+  .content { flex: 1; padding: 24px 20px; max-width: 860px; margin: 0 auto; width: 100%; }
+  .page { display: none; }
+  .page.active { display: block; }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 24px; }
+  .metric { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+  .metric-label { font-size: 11px; font-weight: 500; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .metric-value { font-size: 24px; font-weight: 600; }
+  .metric-sub { font-size: 12px; color: var(--green); margin-top: 2px; }
+  .section-label { font-size: 11px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 12px; }
+  .list-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 24px; }
+  .list-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  .list-row:last-child { border-bottom: none; }
+  .list-row:hover { background: var(--bg); }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+  .list-info { flex: 1; min-width: 0; }
+  .list-name { font-size: 14px; font-weight: 500; }
+  .list-sub { font-size: 12px; color: var(--text-2); margin-top: 1px; }
+  .badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 99px; white-space: nowrap; }
+  .badge-live { background: #EAF3DE; color: #3B6D11; }
+  .badge-building { background: var(--amber-light); color: var(--amber-text); }
+  .ai-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 24px; }
+  .ai-header { display: flex; align-items: center; gap: 8px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .ai-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+  .ai-title { font-size: 14px; font-weight: 500; }
+  .ai-model { font-size: 11px; color: var(--text-3); margin-left: auto; font-family: 'DM Mono', monospace; }
+  .ai-msgs { padding: 16px; min-height: 140px; max-height: 280px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+  .msg-bubble { font-size: 13px; line-height: 1.55; padding: 10px 13px; border-radius: var(--radius); max-width: 88%; white-space: pre-wrap; }
+  .msg-bubble.user { background: var(--green); color: #fff; align-self: flex-end; }
+  .msg-bubble.ai { background: var(--bg); color: var(--text); align-self: flex-start; border: 1px solid var(--border); }
+  .ai-footer { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); }
+  .ai-input { flex: 1; padding: 9px 12px; font-size: 13px; border: 1px solid var(--border-md); border-radius: var(--radius); background: var(--bg); color: var(--text); font-family: inherit; outline: none; }
+  .ai-input:focus { border-color: var(--green); }
+  .btn-send { padding: 9px 18px; background: var(--green); color: #fff; border: none; border-radius: var(--radius); font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; }
+  .typing { display: flex; gap: 4px; align-items: center; }
+  .typing span { width: 5px; height: 5px; border-radius: 50%; background: var(--text-3); animation: blink 1.2s infinite; }
+  .typing span:nth-child(2){animation-delay:.2s} .typing span:nth-child(3){animation-delay:.4s}
+  @keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+  .msg-item { display: flex; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .msg-item:last-child { border-bottom: none; }
+  .msg-icon { width: 34px; height: 34px; border-radius: var(--radius); background: var(--bg); display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; border: 1px solid var(--border); }
+  .msg-body { flex: 1; }
+  .msg-from { font-size: 13px; font-weight: 500; }
+  .msg-text { font-size: 13px; color: var(--text-2); margin-top: 2px; }
+  .msg-time { font-size: 11px; color: var(--text-3); margin-top: 4px; }
+  .unread-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--red); margin-top: 5px; flex-shrink: 0; }
+  .status-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px; }
+  .status-url { font-size: 11px; font-family: 'DM Mono', monospace; color: var(--green); margin-bottom: 8px; word-break: break-all; }
+  .status-row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+  .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #639922; }
+  .status-name { font-size: 15px; font-weight: 500; }
+  .status-updated { font-size: 12px; color: var(--text-3); }
+  .report-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; }
+  .report-title { font-size: 14px; font-weight: 500; margin-bottom: 12px; }
+  .btn-outline { padding: 9px 20px; background: transparent; border: 1px solid var(--border-md); border-radius: var(--radius); font-size: 13px; color: var(--text); cursor: pointer; font-family: inherit; margin-top: 8px; }
+  .success-msg { font-size: 13px; color: var(--green-text); background: var(--green-light); padding: 8px 12px; border-radius: var(--radius); margin-top: 10px; display: none; }
+  .empty { text-align: center; padding: 40px 20px; color: var(--text-3); font-size: 14px; }
+  #loading { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 999; }
+  .loading-logo { font-size: 20px; font-weight: 600; }
+  .loading-logo span { color: var(--green); }
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="loading-logo">Site<span>Pro</span></div></div>
+
+<!-- AUTH -->
+<div id="auth-screen" style="display:none;">
+  <div class="auth-card">
+    <div class="auth-logo">Site<span>Pro</span></div>
+    <div class="auth-sub">Plataforma de sites para restaurantes</div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchAuthTab('login')">Entrar</button>
+      <button class="auth-tab" onclick="switchAuthTab('register')">Cadastrar</button>
+      <button class="auth-tab" onclick="switchAuthTab('reset')">Esqueci senha</button>
+    </div>
+    <div id="auth-error" class="auth-error"></div>
+    <div id="auth-success" class="auth-success"></div>
+
+    <div id="login-form">
+      <button class="btn-google" onclick="doGoogleLogin()">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Entrar com Google
+      </button>
+      <div class="auth-divider">ou</div>
+      <div class="field"><label>E-mail</label><input type="email" id="login-email" placeholder="seu@email.com" /></div>
+      <div class="field"><label>Senha</label><input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" /></div>
+      <button class="btn-primary" onclick="doLogin()">Entrar</button>
+    </div>
+
+    <div id="register-form" style="display:none;">
+      <button class="btn-google" onclick="doGoogleLogin()">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.31-8.16 2.31-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Cadastrar com Google
+      </button>
+      <div class="auth-divider">ou</div>
+      <div class="field"><label>Nome</label><input type="text" id="reg-name" placeholder="Seu nome" /></div>
+      <div class="field"><label>E-mail</label><input type="email" id="reg-email" placeholder="seu@email.com" /></div>
+      <div class="field"><label>Senha</label><input type="password" id="reg-password" placeholder="mínimo 6 caracteres" /></div>
+      <button class="btn-primary" onclick="doRegister()">Criar conta</button>
+    </div>
+
+    <div id="reset-form" style="display:none;">
+      <div class="field"><label>E-mail cadastrado</label><input type="email" id="reset-email" placeholder="seu@email.com" /></div>
+      <button class="btn-primary" onclick="doReset()">Enviar link de redefinição</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETUP -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-title">Configure seu restaurante</div>
+    <div class="setup-sub">Preencha as informações do seu estabelecimento.</div>
+    <div class="form-grid">
+      <div class="field"><label>Nome do restaurante *</label><input type="text" id="s-nome" placeholder="Burger do João" /></div>
+      <div class="field"><label>Tipo *</label><input type="text" id="s-tipo" placeholder="Lanchonete, Pizzaria..." /></div>
+      <div class="field"><label>Cidade *</label><input type="text" id="s-cidade" placeholder="Santo André" /></div>
+      <div class="field"><label>WhatsApp (só números)</label><input type="tel" id="s-whats" placeholder="11999990000" /></div>
+      <div class="field"><label>Instagram (sem @)</label><input type="text" id="s-insta" placeholder="burgerdojoao" /></div>
+      <div class="field"><label>Endereço</label><input type="text" id="s-endereco" placeholder="Rua das Flores, 123" /></div>
+    </div>
+    <div class="field"><label>Descrição / slogan</label><textarea id="s-desc" placeholder="Os melhores burgers artesanais da cidade"></textarea></div>
+    <div class="field"><label>Horário de funcionamento</label><input type="text" id="s-horario" placeholder="Ter–Dom: 11h às 23h" /></div>
+    <div id="setup-error" class="auth-error"></div>
+    <button class="btn-primary" style="margin-top:8px;" onclick="salvarSetup()">Salvar e continuar</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">Site<span>Pro</span></div>
+    <span id="role-badge" class="topbar-role"></span>
+    <div class="topbar-spacer"></div>
+    <span class="topbar-user" id="user-name-display"></span>
+    <button class="btn-logout" onclick="doLogout()">Sair</button>
+  </div>
+  <div class="nav-tabs" id="nav-tabs"></div>
+  <div class="content" id="main-content"></div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, collection, addDoc, getDocs, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBdey2OxOYgcaaLhjHgJsYKkeBYIzJhBcE",
+  authDomain: "sitepro-davi.firebaseapp.com",
+  projectId: "sitepro-davi",
+  storageBucket: "sitepro-davi.firebasestorage.app",
+  messagingSenderId: "454602466209",
+  appId: "1:454602466209:web:964382863c69ef000a21e0"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+const googleProvider = new GoogleAuthProvider();
+const ADMIN_EMAIL = "davi.yoneshige@gmail.com";
+
+let currentUser = null, currentRole = null, currentUserData = null, currentRestaurante = null;
+
+function showErr(msg) { const e=document.getElementById('auth-error'); e.textContent=msg; e.style.display='block'; document.getElementById('auth-success').style.display='none'; }
+function showOk(msg) { const e=document.getElementById('auth-success'); e.textContent=msg; e.style.display='block'; document.getElementById('auth-error').style.display='none'; }
+function hideMsg() { document.getElementById('auth-error').style.display='none'; document.getElementById('auth-success').style.display='none'; }
+
+onAuthStateChanged(auth, async (user) => {
+  document.getElementById('loading').style.display = 'none';
+  if (!user) { showScreen('auth'); return; }
+  currentUser = user;
+  if (user.email === ADMIN_EMAIL) {
+    currentRole='admin'; currentUserData={name:'Davi (Admin)',role:'admin'}; showApp(); return;
+  }
+  const snap = await getDoc(doc(db,'users',user.uid));
+  if (!snap.exists()) {
+    await setDoc(doc(db,'users',user.uid),{name:user.displayName||user.email,email:user.email,role:'empresa',criadoEm:serverTimestamp()});
+    currentRole='empresa'; currentUserData={name:user.displayName||user.email,role:'empresa'};
+    showScreen('setup'); return;
+  }
+  currentUserData = snap.data(); currentRole = currentUserData.role;
+  const rSnap = await getDocs(query(collection(db,'restaurantes'),where('uid','==',user.uid)));
+  if (rSnap.empty) { showScreen('setup'); return; }
+  currentRestaurante = {id:rSnap.docs[0].id,...rSnap.docs[0].data()};
+  showApp();
+});
+
+function showScreen(name) {
+  document.getElementById('auth-screen').style.display = name==='auth'?'flex':'none';
+  document.getElementById('setup-screen').style.display = name==='setup'?'flex':'none';
+  document.getElementById('app').style.display = name==='app'?'flex':'none';
+}
+function showApp() { showScreen('app'); buildApp(); }
+
+window.switchAuthTab = (tab) => {
+  document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',(i===0&&tab==='login')||(i===1&&tab==='register')||(i===2&&tab==='reset')));
+  document.getElementById('login-form').style.display=tab==='login'?'block':'none';
+  document.getElementById('register-form').style.display=tab==='register'?'block':'none';
+  document.getElementById('reset-form').style.display=tab==='reset'?'block':'none';
+  hideMsg();
+};
+window.doLogin = async () => {
+  hideMsg();
+  try { await signInWithEmailAndPassword(auth,document.getElementById('login-email').value.trim(),document.getElementById('login-password').value); }
+  catch(e) { showErr('E-mail ou senha incorretos.'); }
+};
+window.doRegister = async () => {
+  hideMsg();
+  const name=document.getElementById('reg-name').value.trim(), email=document.getElementById('reg-email').value.trim(), pass=document.getElementById('reg-password').value;
+  if(!name||!email||!pass){showErr('Preencha todos os campos.');return;}
+  try { await createUserWithEmailAndPassword(auth,email,pass); }
+  catch(e){showErr(e.code==='auth/email-already-in-use'?'E-mail já cadastrado.':e.code==='auth/weak-password'?'Senha fraca, mínimo 6 caracteres.':'Erro ao criar conta.');}
+};
+window.doGoogleLogin = async () => {
+  hideMsg();
+  try { await signInWithPopup(auth,googleProvider); }
+  catch(e){showErr('Erro ao entrar com Google.');}
+};
+window.doReset = async () => {
+  hideMsg();
+  const email=document.getElementById('reset-email').value.trim();
+  if(!email){showErr('Digite seu e-mail.');return;}
+  try{await sendPasswordResetEmail(auth,email);showOk('E-mail enviado! Verifique sua caixa de entrada.');}
+  catch(e){showErr('E-mail não encontrado.');}
+};
+window.doLogout = async () => { await signOut(auth); };
+
+window.salvarSetup = async () => {
+  const nome=document.getElementById('s-nome').value.trim(), tipo=document.getElementById('s-tipo').value.trim(),
+    cidade=document.getElementById('s-cidade').value.trim(), whats=document.getElementById('s-whats').value.trim(),
+    insta=document.getElementById('s-insta').value.trim(), endereco=document.getElementById('s-endereco').value.trim(),
+    desc=document.getElementById('s-desc').value.trim(), horario=document.getElementById('s-horario').value.trim();
+  const errEl=document.getElementById('setup-error');
+  if(!nome||!cidade){errEl.textContent='Nome e cidade são obrigatórios.';errEl.style.display='block';return;}
+  const slug=nome.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'-').replace(/-+/g,'-').replace(/^-|-$/g,'');
+  await addDoc(collection(db,'restaurantes'),{uid:currentUser.uid,nome,tipo,cidade,whats,insta,endereco,desc,horario,slug,status:'building',criadoEm:serverTimestamp()});
+  const rSnap=await getDocs(query(collection(db,'restaurantes'),where('uid','==',currentUser.uid)));
+  if(!rSnap.empty) currentRestaurante={id:rSnap.docs[0].id,...rSnap.docs[0].data()};
+  showApp();
+};
+
+function buildApp() {
+  document.getElementById('user-name-display').textContent=currentUserData?.name||currentUser.email;
+  const badge=document.getElementById('role-badge');
+  if(currentRole==='admin'){badge.textContent='Admin';badge.className='topbar-role role-admin';}
+  else{badge.textContent='Restaurante';badge.className='topbar-role role-empresa';}
+  const tabs=currentRole==='admin'
+    ?[{id:'dashboard',label:'Dashboard',fn:renderDashboard},{id:'clientes',label:'Clientes',fn:renderClientes},{id:'mensagens',label:'Mensagens',fn:renderMsgsAdmin},{id:'ia',label:'IA Dev',fn:renderIA}]
+    :[{id:'meusite',label:'Meu Site',fn:renderMeuSite},{id:'contato',label:'Falar com Dev',fn:renderContato}];
+  document.getElementById('nav-tabs').innerHTML=tabs.map((t,i)=>`<div class="nav-tab${i===0?' active':''}" id="tab-${t.id}" onclick="switchTab('${t.id}')">${t.label}</div>`).join('');
+  document.getElementById('main-content').innerHTML=tabs.map(t=>`<div class="page" id="page-${t.id}"></div>`).join('');
+  window._tabs=tabs;
+  window.switchTab=(id)=>{
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.getElementById('tab-'+id)?.classList.add('active');
+    const page=document.getElementById('page-'+id);
+    page.classList.add('active');
+    const tab=tabs.find(t=>t.id===id);
+    if(tab&&!page.dataset.loaded){tab.fn(page);page.dataset.loaded='1';}
+  };
+  tabs[0].fn(document.getElementById('page-'+tabs[0].id));
+  document.getElementById('page-'+tabs[0].id).classList.add('active');
+  document.getElementById('page-'+tabs[0].id).dataset.loaded='1';
+}
+
+async function renderDashboard(el) {
+  el.innerHTML=`<div class="metrics" id="dm"><div class="metric"><div class="metric-label">Carregando</div><div class="metric-value">...</div></div></div>`;
+  const [us,ms,rs]=await Promise.all([getDocs(collection(db,'users')),getDocs(collection(db,'mensagens')),getDocs(collection(db,'restaurantes'))]);
+  const nl=ms.docs.filter(d=>!d.data().lida).length;
+  document.getElementById('dm').innerHTML=`
+    <div class="metric"><div class="metric-label">Clientes</div><div class="metric-value">${us.size}</div></div>
+    <div class="metric"><div class="metric-label">Restaurantes</div><div class="metric-value">${rs.size}</div></div>
+    <div class="metric"><div class="metric-label">Mensagens</div><div class="metric-value">${ms.size}</div><div class="metric-sub">${nl} não lidas</div></div>`;
+}
+
+async function renderClientes(el) {
+  el.innerHTML=`<div class="section-label">Restaurantes cadastrados</div><div class="list-card" id="rl"><div class="empty">Carregando...</div></div>`;
+  const snap=await getDocs(collection(db,'restaurantes'));
+  const listEl=document.getElementById('rl');
+  if(snap.empty){listEl.innerHTML='<div class="empty">Nenhum restaurante ainda.</div>';return;}
+  const cols=['#E1F5EE;color:#0F6E56','#FAEEDA;color:#854F0B','#E6F1FB;color:#185FA5','#FCEBEB;color:#A32D2D'];
+  const base=window.location.href.replace('sitepro.html','');
+  listEl.innerHTML=snap.docs.map((d,i)=>{
+    const r=d.data(), init=r.nome.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase(), col=cols[i%cols.length];
+    const badge=r.status==='live'?'<span class="badge badge-live">no ar</span>':'<span class="badge badge-building">em construção</span>';
+    return `<div class="list-row"><div class="avatar" style="background:${col.split(';')[0]};${col.split(';')[1]}">${init}</div><div class="list-info"><div class="list-name">${r.nome}</div><div class="list-sub">${r.tipo||''} · ${r.cidade||''} · <a href="${base}cliente.html?r=${r.slug}" target="_blank" style="color:var(--green);">ver site</a></div></div>${badge}</div>`;
+  }).join('');
+}
+
+async function renderMsgsAdmin(el) {
+  el.innerHTML=`<div class="section-label">Mensagens</div><div class="list-card" id="ml"><div class="empty">Carregando...</div></div>`;
+  try {
+    const snap=await getDocs(query(collection(db,'mensagens'),orderBy('criadoEm','desc')));
+    const listEl=document.getElementById('ml');
+    if(snap.empty){listEl.innerHTML='<div class="empty">Nenhuma mensagem ainda.</div>';return;}
+    listEl.innerHTML=snap.docs.map(d=>{
+      const m=d.data(),dt=m.criadoEm?.toDate?m.criadoEm.toDate().toLocaleDateString('pt-BR'):'agora';
+      return `<div class="msg-item"><div class="msg-icon">✉️</div><div class="msg-body"><div class="msg-from">${m.nomeRestaurante||m.email||'Cliente'}</div><div class="msg-text">${m.texto}</div><div class="msg-time">${dt}</div></div>${!m.lida?'<div class="unread-dot"></div>':''}</div>`;
+    }).join('');
+  } catch(e){document.getElementById('ml').innerHTML='<div class="empty">Erro ao carregar.</div>';}
+}
+
+function renderIA(el) {
+  el.innerHTML=`
+    <div class="section-label">Assistente de desenvolvimento</div>
+    <div class="ai-box">
+      <div class="ai-header"><div class="ai-dot"></div><div class="ai-title">IA Dev</div><div class="ai-model">claude-sonnet</div></div>
+      <div class="ai-msgs" id="ia-msgs"><div class="msg-bubble ai">Olá! Posso gerar código, criar cardápios, sugerir layouts e mais. O que você precisa?</div></div>
+      <div class="ai-footer"><input class="ai-input" id="ia-input" placeholder="Ex: Crie um cardápio para pizzaria italiana..." onkeydown="if(event.key==='Enter')sendIA()" /><button class="btn-send" onclick="sendIA()">Enviar</button></div>
+    </div>`;
+  window.sendIA=async()=>{
+    const input=document.getElementById('ia-input'),msgs=document.getElementById('ia-msgs'),text=input.value.trim();
+    if(!text)return; input.value='';
+    msgs.innerHTML+=`<div class="msg-bubble user">${text}</div>`;
+    msgs.innerHTML+=`<div class="msg-bubble ai" id="ia-t"><div class="typing"><span></span><span></span><span></span></div></div>`;
+    msgs.scrollTop=msgs.scrollHeight;
+    try {
+      const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,
+          system:'Você é um assistente especializado em desenvolvimento de sites para restaurantes brasileiros. Responda em português de forma objetiva.',
+          messages:[{role:'user',content:text}]})});
+      const data=await res.json();
+      document.getElementById('ia-t')?.remove();
+      msgs.innerHTML+=`<div class="msg-bubble ai">${data.content?.[0]?.text||'Erro.'}</div>`;
+    } catch(e){document.getElementById('ia-t')?.remove();msgs.innerHTML+=`<div class="msg-bubble ai">Erro de conexão.</div>`;}
+    msgs.scrollTop=msgs.scrollHeight;
+  };
+}
+
+function renderMeuSite(el) {
+  const r=currentRestaurante;
+  if(!r){el.innerHTML='<div class="empty">Restaurante não encontrado.</div>';return;}
+  const base=window.location.href.replace('sitepro.html','');
+  const url=`${base}cliente.html?r=${r.slug}`;
+  el.innerHTML=`
+    <div class="status-card">
+      <div class="status-url">${url}</div>
+      <div class="status-row"><div class="live-dot"></div><div class="status-name">${r.nome}</div></div>
+      <div class="status-updated">${r.tipo||''} · ${r.cidade||''} · ${r.status==='live'?'No ar':'Em construção'}</div>
+    </div>
+    <div style="margin-bottom:20px;">
+      <a href="${url}" target="_blank" style="display:inline-block;padding:10px 20px;background:var(--green);color:#fff;border-radius:var(--radius);font-size:14px;font-weight:500;text-decoration:none;">Ver meu site público</a>
+    </div>`;
+}
+
+async function renderContato(el) {
+  el.innerHTML=`
+    <div class="section-label">Falar com o desenvolvedor</div>
+    <div class="report-card">
+      <div class="report-title">Encontrou um problema ou quer pedir uma alteração?</div>
+      <textarea id="report-txt" style="width:100%;padding:10px 12px;font-size:13px;border:1px solid var(--border-md);border-radius:var(--radius);background:var(--bg);color:var(--text);font-family:inherit;resize:none;height:90px;outline:none;" placeholder="Descreva o que precisa..."></textarea>
+      <button class="btn-outline" onclick="enviarMsg()">Enviar mensagem</button>
+      <div class="success-msg" id="report-ok">Mensagem enviada!</div>
+    </div>
+    <div class="section-label" style="margin-top:24px;">Histórico</div>
+    <div class="list-card" id="hist"><div class="empty">Carregando...</div></div>`;
+  try {
+    const snap=await getDocs(query(collection(db,'mensagens'),where('uid','==',currentUser.uid),orderBy('criadoEm','desc')));
+    const h=document.getElementById('hist');
+    if(snap.empty){h.innerHTML='<div class="empty">Nenhuma mensagem ainda.</div>';}
+    else h.innerHTML=snap.docs.map(d=>{const m=d.data(),dt=m.criadoEm?.toDate?m.criadoEm.toDate().toLocaleDateString('pt-BR'):'agora';return `<div class="msg-item"><div class="msg-icon">📝</div><div class="msg-body"><div class="msg-from">Você</div><div class="msg-text">${m.texto}</div><div class="msg-time">${dt}</div></div></div>`;}).join('');
+  } catch(e){}
+  window.enviarMsg=async()=>{
+    const txt=document.getElementById('report-txt').value.trim();
+    if(!txt)return;
+    await addDoc(collection(db,'mensagens'),{uid:currentUser.uid,email:currentUser.email,nomeRestaurante:currentRestaurante?.nome||currentUser.email,texto:txt,lida:false,criadoEm:serverTimestamp()});
+    document.getElementById('report-txt').value='';
+    const ok=document.getElementById('report-ok'); ok.style.display='block';
+    setTimeout(()=>ok.style.display='none',3000);
+    document.getElementById('page-contato').dataset.loaded='';
+    await renderContato(el);
+  };
+}
+</script>
+</body>
+</html>
